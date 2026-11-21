@@ -16,11 +16,17 @@
     countryLabel: 'USA',
 
     // Meeting template
-    meetingTitle: 'Client Meeting',
+    meetingTitle: 'Client',
+    meetingTitleAccent: 'Meeting',
     meetingCaption: '',
     meetingFit: 'contain',    // 'contain' or 'cover'
     meetingZoom: 100,         // percentage 50 - 200
     meetingOffsetY: 0,        // pixels -200 to +200
+
+    chatHeadline: 'Client',
+    chatHeadlineAccent: 'Conversation',
+    chatFrame: 'phone',
+    chatCountry: '',
 
     // Case Study template
     csCategory: 'Web Development',
@@ -58,7 +64,7 @@
 
   // Image objects stored separately (cannot JSON-clone)
   var _images = {
-    meetingImg: null,
+    meetingImg: null, chatImg: null,
     projectImg: null,
     flagsImg: null
   };
@@ -69,6 +75,13 @@
       state.meetingTitle = saved.showMeetingHeadline === false ? '' : saved.meetingHeadline;
     }
     if (saved.meetingCaption === undefined && saved.meetingNote !== undefined) state.meetingCaption = saved.meetingNote;
+    ['meetingTitle', 'chatHeadline'].forEach(function(key) {
+      if (saved[key + 'Accent'] !== undefined) return;
+      if (saved[key] === undefined && !(key === 'meetingTitle' && saved.meetingHeadline !== undefined)) return;
+      var words = String(state[key] || '').trim().split(/\s+/);
+      state[key + 'Accent'] = words.pop();
+      state[key] = words.join(' ');
+    });
     return state;
   }
 
@@ -107,7 +120,7 @@
       return Object.assign({}, _state, _images);
     },
     set: function(partial) {
-      var imageKeys = ['meetingImg', 'projectImg', 'flagsImg'];
+      var imageKeys = ['meetingImg', 'chatImg', 'projectImg', 'flagsImg'];
       var filtered = {};
       Object.keys(partial).forEach(function(k) {
         if (imageKeys.indexOf(k) === -1) filtered[k] = partial[k];
@@ -123,7 +136,7 @@
     reset: function() {
       try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
       _state = JSON.parse(JSON.stringify(DEFAULT_STATE));
-      _images = { meetingImg: null, projectImg: null, flagsImg: null };
+      _images = { meetingImg: null, chatImg: null, projectImg: null, flagsImg: null };
       notify();
     },
     subscribe: function(fn) {

@@ -23,7 +23,7 @@
       <label for="fileLoadProject" class="btn-secondary btn-sm" title="Load project from JSON file">Load Project</label>
       <input id="fileLoadProject" type="file" accept=".json" hidden>
       <button id="btnExportPng" class="btn-primary btn-sm" type="button" title="Export current design as PNG image">Export PNG</button>
-      <button id="btnExportAll" class="btn-secondary btn-sm" type="button" title="Export all 5 templates as a ZIP archive">Export All (ZIP)</button>
+      <button id="btnExportAll" class="btn-secondary btn-sm" type="button" title="Export all 6 templates as a ZIP archive">Export All (ZIP)</button>
     </div>
   </header>
 
@@ -36,6 +36,7 @@
       <h1 class="sidebar-title">Post editor</h1>
       <nav class="template-tabs" role="tablist" aria-label="Templates">
         <button class="tab-btn active" data-template="meeting" role="tab" aria-selected="true" type="button">Meeting</button>
+        <button class="tab-btn" data-template="chat" role="tab" aria-selected="false" type="button">Chat</button>
         <button class="tab-btn" data-template="casestudy" role="tab" aria-selected="false" type="button">Case Study</button>
         <button class="tab-btn" data-template="project" role="tab" aria-selected="false" type="button">Project</button>
         <button class="tab-btn" data-template="service" role="tab" aria-selected="false" type="button">Service</button>
@@ -50,8 +51,14 @@
 
         <div class="control-group">
           <label class="checkbox-row"><input type="checkbox" id="animateServices"> Animate service icons in preview</label>
-          <label for="meetingTitle">Post headline</label>
-          <input type="text" id="meetingTitle" maxlength="75" value="Client Meeting">
+          <div class="grid-2-col">
+            <label for="meetingTitle">Headline · White
+              <input type="text" id="meetingTitle" maxlength="75" value="Client">
+            </label>
+            <label for="meetingTitleAccent">Headline · Mint
+              <input type="text" id="meetingTitleAccent" maxlength="75" value="Meeting">
+            </label>
+          </div>
           <label for="meetingCaption">Caption</label>
           <input type="text" id="meetingCaption" maxlength="90" placeholder="Optional caption">
           <label for="countrySearch">Client country / region</label>
@@ -88,6 +95,29 @@
 
           <label for="meetingOffsetY" style="margin-top:6px">Vertical position <span id="meetingOffsetVal" class="val-badge">0px</span></label>
           <input type="range" id="meetingOffsetY" min="-120" max="120" value="0" step="4">
+        </div>
+      </section>
+
+      <section class="template-panel hidden" id="panel-chat">
+        <div class="panel-header"><h2 class="panel-title">Client Chat</h2></div>
+        <div class="control-group">
+          <label for="chatCountry">Client country / region</label>
+          <select id="chatCountry"><option value="">Use meeting country</option></select>
+          <div class="grid-2-col">
+            <label for="chatHeadline">Headline · White
+              <input type="text" id="chatHeadline" maxlength="75" value="Client">
+            </label>
+            <label for="chatHeadlineAccent">Headline · Mint
+              <input type="text" id="chatHeadlineAccent" maxlength="75" value="Conversation">
+            </label>
+          </div>
+          <label for="chatFrame">Screenshot frame</label>
+          <select id="chatFrame">
+            <option value="phone">Phone screen</option>
+            <option value="monitor">Laptop / monitor screen</option>
+          </select>
+          <label for="chatFileInput">Chat screenshot</label>
+          <input type="file" id="chatFileInput" accept="image/png,image/jpeg,image/webp">
         </div>
       </section>
 
@@ -245,7 +275,7 @@
 
     <!-- CENTER WORKSPACE -->
     <main class="workspace">
-      <div class="preview-heading"><h2>Live preview</h2><span>Social post</span></div>
+      <div class="preview-heading"><h2>Live preview</h2><button type="button" id="copyPrompt" class="btn-secondary btn-sm">Copy Meeting prompt</button><output id="copyToast" lang="bn" role="status" hidden>প্রম্পট কপি হয়েছে ✓</output></div>
       <div class="canvas-wrapper" id="canvasWrapper">
         <div class="crop-overlay hidden" id="cropOverlay" aria-hidden="true">
           <div class="crop-safe-box" id="cropSafeBox">
@@ -254,7 +284,7 @@
           <div class="crop-profile-mask top" id="cropMaskTop"></div>
           <div class="crop-profile-mask bottom" id="cropMaskBottom"></div>
         </div>
-        <canvas id="mainCanvas" width="1080" height="1080" aria-label="Design preview"></canvas>
+        <canvas id="mainCanvas" width="1080" height="1080" role="button" tabindex="0" aria-haspopup="dialog" aria-label="Open full-screen post preview" title="Open full-screen preview"></canvas>
       </div>
       <div class="canvas-footer-bar">
         <p class="canvas-status" id="canvasStatus" role="status" aria-live="polite">Ready</p>
@@ -262,6 +292,16 @@
       </div>
     </main>
   </div>
+
+  <dialog id="postProof" aria-label="Full-screen post preview">
+    <button type="button" class="btn-secondary btn-sm" id="closeProof" autofocus>Close preview</button>
+    <canvas id="proofCanvas" aria-label="Full-size post"></canvas>
+  </dialog>
+  <dialog id="manualPrompt" aria-labelledby="manualPromptTitle">
+    <h2 id="manualPromptTitle">Copy prompt</h2>
+    <textarea id="promptText" aria-label="Template prompt" readonly></textarea>
+    <form method="dialog"><button class="btn-secondary btn-sm">Close</button></form>
+  </dialog>
 
   <!-- SCRIPT LOAD SEQUENCE -->
   <script src="js/meeting-art.js"></script>
@@ -273,6 +313,7 @@
   <script src="js/landmark-atlas.js"></script>
   <script src="js/world-map.js"></script>
   <script src="js/renderer.js"></script>
+  <script src="js/preview-tools.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

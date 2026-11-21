@@ -13,6 +13,7 @@
   var dimensionsEl = null;
   var meetingDataUrl = null;
   var projectDataUrl = null;
+  var chatImageRevision = 0;
 
   // Format dimensions (master coordinates)
   var FORMATS = {
@@ -73,6 +74,7 @@
   // ── Template Tabs ───────────────────────────────────────────
 
   function showTemplate(tpl) {
+    window.PreviewTools.select(tpl);
     document.querySelectorAll('.tab-btn').forEach(function(t) {
       t.classList.toggle('active', t.dataset.template === tpl);
       t.setAttribute('aria-selected', t.dataset.template === tpl ? 'true' : 'false');
@@ -97,6 +99,7 @@
   // ── Canvas Dimensions & Aspect Ratio ────────────────────────
 
   function dimensionsFor(format, template) {
+    if (format === 'auto' && template === 'chat') return FORMATS.portrait45;
     if (format === 'auto' && template === 'meeting') return {w: 1080, h: 818, label: '1080 × 818 px (Meeting cover)'};
     return FORMATS[format] || FORMATS.square;
   }
@@ -123,6 +126,21 @@
     var cropBadge = document.getElementById('cropBadge');
     if (!cropSafeBox) return;
 
+    if (window.AppState.get().templateId === 'chat') {
+      var safe = window.Renderer.chatSafeZone(canvas.width, canvas.height);
+      var verticalInset = (100 * safe.y / canvas.height) + '%';
+      var horizontalInset = (100 * safe.x / canvas.width) + '%';
+      cropSafeBox.style.top = cropSafeBox.style.bottom = verticalInset;
+      cropSafeBox.style.left = cropSafeBox.style.right = horizontalInset;
+      if (cropBadge) cropBadge.textContent = Math.round(safe.size) + 'px Safe Zone';
+      [maskTop, maskBottom].forEach(function(mask) {
+        if (!mask) return;
+        mask.style.height = (50 * Math.max(0, canvas.height - canvas.width) / canvas.height) + '%';
+        mask.classList.toggle('visible', canvas.height > canvas.width);
+      });
+      return;
+    }
+    cropSafeBox.style.left = cropSafeBox.style.right = '';
     if (formatKey === 'portrait45') {
       // 1080x1350: square center is (1350-1080)/2 = 135px -> 10%
       var cropPct = 10;
@@ -239,6 +257,29 @@
     var meetingInput = document.getElementById('meetingFileInput');
     var projectInput = document.getElementById('projectFileInput');
 
+    document.getElementById('chatFileInput').addEventListener('change', async function(event) {
+      var file = event.target.files[0];
+      if (!file) return;
+      var revision = ++chatImageRevision;
+      try {
+        var data = await new Promise(function(resolve, reject) {
+          var reader = new FileReader();
+          reader.onload = function() { resolve(reader.result); };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        var img = new Image();
+        img.src = data;
+        await img.decode();
+        if (revision === chatImageRevision) {
+          window.AppState.setImage('chatImg', img);
+          render();
+        }
+      } catch (error) {
+        if (revision === chatImageRevision) setStatus('Could not open the chat screenshot.', 'error');
+      }
+    });
+
     if (meetingInput) {
       meetingInput.addEventListener('change', function(e) {
         var file = e.target.files && e.target.files[0];
@@ -293,6 +334,10 @@
   }
 
   function initInputBindings() {
+    bindInput('chatHeadline', 'chatHeadline');
+    bindInput('chatHeadlineAccent', 'chatHeadlineAccent');
+    bindInput('chatFrame', 'chatFrame');
+    bindInput('chatCountry', 'chatCountry');
     // Brand & layout
     bindInput('authorName', 'authorName');
     bindInput('showAuthor', 'showAuthor');
@@ -316,6 +361,7 @@
 
     // Meeting image presentation
     bindInput('meetingTitle', 'meetingTitle');
+    bindInput('meetingTitleAccent', 'meetingTitleAccent');
     bindInput('meetingCaption', 'meetingCaption');
     bindInput('meetingFit', 'meetingFit');
 
@@ -456,12 +502,12 @@
 
     if (btnAll) {
       btnAll.addEventListener('click', async function() {
-        setStatus('Exporting all 5 slides...', '');
+        setStatus('Exporting all 6 slides...', '');
         try {
           var originalState = window.AppState.get();
           await window.Renderer.landmark.decode();
           var scale = originalState.exportScale || 1;
-          var templates = ['meeting', 'casestudy', 'project', 'service', 'tip'];
+          var templates = ['meeting', 'casestudy', 'project', 'service', 'tip', 'chat'];
           var items = [];
 
           for (var i = 0; i < templates.length; i++) {
@@ -488,7 +534,12 @@
   function hydrateForm(state) {
     showTemplate(state.templateId);
     var fields = {
+      chatHeadline: 'chatHeadline',
+      chatHeadlineAccent: 'chatHeadlineAccent',
+      chatFrame: 'chatFrame',
+      chatCountry: 'chatCountry',
       meetingTitle: 'meetingTitle',
+      meetingTitleAccent: 'meetingTitleAccent',
       meetingCaption: 'meetingCaption',
       authorName: 'authorName',
       csCategory: 'csCategory',
@@ -584,6 +635,7 @@
     if (btnSave) {
       btnSave.addEventListener('click', function() {
         window.Storage.saveProject(window.AppState.get(), {
+          chatImg: window.AppState.get().chatImg?.src || null,
           meetingImg: meetingDataUrl,
           projectImg: projectDataUrl
         });
@@ -596,6 +648,16 @@
         if (!file) return;
         try {
           var result = await window.Storage.loadProjectFile(file);
+          var revision = ++chatImageRevision;
+          var chatImg = null;
+          if (result.screenshots && result.screenshots.chatImg) {
+            chatImg = new Image();
+            chatImg.src = result.screenshots.chatImg;
+            await chatImg.decode();
+          }
+          if (revision !== chatImageRevision) return;
+          window.AppState.setImage('chatImg', chatImg);
+          document.getElementById('chatFileInput').value = '';
           result.state = window.AppState.restoreDefaults(result.state);
           window.AppState.set(result.state);
           hydrateForm(result.state);
@@ -633,6 +695,8 @@
 
     if (btnReset) {
       btnReset.addEventListener('click', function() {
+        ++chatImageRevision;
+        document.getElementById('chatFileInput').value = '';
         window.AppState.reset();
         meetingDataUrl = null;
         projectDataUrl = null;
@@ -655,7 +719,11 @@
     dimensionsEl = document.getElementById('canvasDimensions');
 
     if (!canvas) return;
+    window.PreviewTools.init();
 
+    window.COUNTRIES.forEach(function(country) {
+      document.getElementById('chatCountry').add(new Option(country.name, country.code));
+    });
     var currentState = window.AppState.get();
     applyFormat(currentState.format || 'square');
     hydrateForm(currentState);

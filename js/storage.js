@@ -5,6 +5,7 @@
   function stripImages(state) {
     var s = Object.assign({}, state);
     delete s.meetingImg;
+    delete s.chatImg;
     delete s.projectImg;
     delete s.flagsImg;
     return s;

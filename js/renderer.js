@@ -96,11 +96,13 @@
     }
   }
 
-  function drawMonitor(ctx, image, x, y, width, height, fit, zoom, offset) {
+  function drawScreenFrame(ctx, image, x, y, width, height, fit, zoom, offset, device) {
     if (width <= 0 || height <= 0) return y;
     var hasImage = image && image.complete && image.naturalWidth;
     var aspect = hasImage && fit !== 'cover' ? image.naturalWidth / image.naturalHeight : 16 / 9;
-    var bezel = 7;
+    if (device) aspect = device === 'phone' ? 9 / 19 : 16 / 9;
+    var phone = device === 'phone';
+    var bezel = phone ? 9 : 7;
     var screenWidth = Math.max(1, Math.min(width - 24, (height - 30) * aspect));
     var screenHeight = screenWidth / aspect;
     var scale = (zoom || 100) / 100;
@@ -118,14 +120,16 @@
     ctx.strokeStyle = '#818d87';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.roundRect(left - bezel, 0, screenWidth + 2 * bezel, outerHeight, 10);
+    ctx.roundRect(left - bezel, 0, screenWidth + 2 * bezel, outerHeight, phone ? 32 : 10);
     ctx.fill();
     ctx.stroke();
     ctx.beginPath();
-    ctx.roundRect(left, bezel, screenWidth, screenHeight, 3);
+    ctx.roundRect(left, bezel, screenWidth, screenHeight, phone ? 24 : 3);
     ctx.clip();
     if (hasImage) {
-      var fitScale = Math.max(screenWidth / image.naturalWidth, screenHeight / image.naturalHeight);
+      ctx.fillStyle = '#141918';
+      ctx.fillRect(left, bezel, screenWidth, screenHeight);
+      var fitScale = (device ? Math.min : Math.max)(screenWidth / image.naturalWidth, screenHeight / image.naturalHeight);
       var imgW = fitScale * image.naturalWidth;
       var imgH = fitScale * image.naturalHeight;
       ctx.drawImage(image, -imgW / 2, bezel + (screenHeight - imgH) / 2, imgW, imgH);
@@ -222,8 +226,21 @@
   var landmark = new Image();
   landmark.src = window.LANDMARK_ATLAS;
 
+  function meetingSafeTop(W, H) {
+    return H / 12 + Math.max(0, H - W) * 5 / 12;
+  }
+
+  function postHeaderHeight(W, H, state) {
+    var height = Math.round(H * .36);
+    if (state.templateId === 'meeting') {
+      // Allow for the country row, a two-line title and its underline.
+      height = Math.max(height, Math.ceil(meetingSafeTop(W, H)) + 16 + 98 + 132 + 30);
+    }
+    return height;
+  }
+
   function drawPostBackground(ctx, W, H, state) {
-    var header = Math.round(H * .36);
+    var header = postHeaderHeight(W, H, state);
     var ground = ctx.createLinearGradient(0, 0, W, H);
     var dark = state.bgColor === '#003912' ? '#002713' : '#00251a';
     ground.addColorStop(0, dark);
@@ -231,15 +248,15 @@
     ctx.fillStyle = ground;
     ctx.fillRect(0, 0, W, H);
 
-    // Keep the map visible beneath a meeting screenshot and behind text-only posts.
-    var isMeeting = state.templateId === 'meeting';
-    var mapWidth = isMeeting ? W * .30 : W * .93;
-    var mapScale = mapWidth / 360;
+    // Center the map in the lower panel and cover it without stretching the coastlines.
+    var isMeeting = state.templateId === 'meeting' || state.templateId === 'chat';
+    var panelHeight = H - header;
+    var mapScale = Math.max(W / 360, panelHeight / 144);
     ctx.save();
     ctx.beginPath();
     ctx.rect(0, header, W, H - header);
     ctx.clip();
-    ctx.translate((W - mapWidth) / 2, H - 144 * mapScale - (isMeeting ? 5 : 32));
+    ctx.translate((W - 360 * mapScale) / 2, header + (panelHeight - 144 * mapScale) / 2);
     ctx.scale(mapScale, mapScale);
     ctx.fillStyle = isMeeting ? 'rgba(133,220,173,.26)' : 'rgba(133,220,173,.14)';
     ctx.fill(window.WORLD_LAND, 'evenodd');
@@ -305,12 +322,83 @@
     ctx.textAlign = 'left';
   }
 
+  function headlineParts(state, key) {
+    var white = (state[key] || '').trim().replace(/\s+/g, ' ');
+    var mint = (state[key + 'Accent'] || '').trim().replace(/\s+/g, ' ');
+    return {text: [white, mint].filter(Boolean).join(' '), whiteLength: white.length};
+  }
+
+  function drawHeadlineLine(ctx, line, whiteLength) {
+    var split = Math.max(0, Math.min(line.length, whiteLength));
+    var prefix = line.slice(0, split);
+    ctx.fillStyle = postText.primary;
+    if (prefix) ctx.fillText(prefix, 0, 0);
+    ctx.fillStyle = postText.accent;
+    if (split < line.length) ctx.fillText(line.slice(split), ctx.measureText(prefix).width, 0);
+  }
+
+  function renderPhoneChat(ctx, W, H, state) {
+    var top = 16;
+    var footerSpace = state.showAuthor && (state.authorName || '').trim() ? 108 : 76;
+    var height = H - footerSpace - top;
+    var phoneSlot = Math.min(W * .60, (height - 30) * 9 / 19 + 24);
+    var phoneX = (W - phoneSlot) / 2;
+    var inset = 22;
+    var textWidth = phoneX - 2 * inset;
+    var middle = top + height / 2;
+
+    drawScreenFrame(ctx, state.chatImg, phoneX, top, phoneSlot, height,
+      'contain', 100, 0, 'phone');
+
+    var leftCenter = phoneX / 2;
+    setFont(ctx, 38, '700', state.fontFamily);
+    var countryLines = wrapTextLines(ctx, state.countryLabel, textWidth);
+    var flagSize = 84;
+    var flagTop = middle - (flagSize + 18 + countryLines.length * 45) / 2;
+    drawFlag(ctx, state.countryCode, leftCenter - flagSize / 2, flagTop, flagSize, flagSize, state);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = postText.primary;
+    countryLines.forEach(function(line, i) {
+      ctx.fillText(line, leftCenter, flagTop + flagSize + 18 + i * 45, textWidth);
+    });
+
+    var parts = headlineParts(state, 'chatHeadline');
+    var headline = parts.text;
+    if (headline) {
+      var size = 50;
+      var lines;
+      do {
+        setFont(ctx, size, '800', state.fontFamily);
+        lines = wrapTextLines(ctx, headline, textWidth);
+        if (lines.length <= 5) break;
+        size -= 2;
+      } while (size > 32);
+      var lineHeight = Math.ceil(size * 1.14);
+      var rightX = phoneX + phoneSlot + inset;
+      var startY = middle - lines.length * lineHeight / 2;
+      drawHRule(ctx, rightX, startY - 17, 42, postText.accent, 3);
+      lines.forEach(function(line, i) {
+        ctx.save();
+        ctx.translate(rightX, startY + i * lineHeight);
+        ctx.scale(Math.min(1, textWidth / ctx.measureText(line).width), 1);
+        drawHeadlineLine(ctx, line, parts.whiteLength);
+        parts.whiteLength -= line.length + 1;
+        ctx.restore();
+      });
+    }
+    ctx.textAlign = 'left';
+    return { overflow: false };
+  }
+
   function renderMeeting(ctx, W, H, state) {
+    if (state.templateId === 'chat' && state.chatFrame === 'phone') {
+      return renderPhoneChat(ctx, W, H, state);
+    }
     var family = state.fontFamily;
     var edge = 32;
     var center = W / 2;
     var width = W * .79;
-    var header = Math.round(H * .36);
+    var header = postHeaderHeight(W, H, state);
     if (state.servicePhase !== undefined) {
       ctx.save();
       ctx.translate(W * .52, 0);
@@ -320,7 +408,9 @@
       ctx.restore();
     }
 
-    var headline = (state.meetingTitle || '').trim();
+    var chat = state.templateId === 'chat';
+    var parts = headlineParts(state, chat ? 'chatHeadline' : 'meetingTitle');
+    var headline = parts.text;
     var size = 112;
     var lines;
     do {
@@ -331,6 +421,7 @@
     } while (size >= 30);
     // Center the flag and its label as one unit, then each headline line.
     var flagY = Math.max(24, (header - (98 + size * lines.length + 28)) / 2);
+    if (!chat) flagY = Math.max(flagY, Math.ceil(meetingSafeTop(W, H)) + 16);
     var country = (state.countryLabel || '').trim();
     setFont(ctx, 53, '700', family);
     var countryWidth = Math.min(width - 122, ctx.measureText(country).width);
@@ -346,15 +437,11 @@
     var top = flagY + 98;
     lines.forEach(function(line, i) {
       var measured = ctx.measureText(line).width;
-      var cut = i === lines.length - 1 ? line.lastIndexOf(' ') + 1 : line.length;
-      var prefix = line.slice(0, cut);
       ctx.save();
       ctx.translate(center - Math.min(width, measured) / 2, top + i * size);
       ctx.scale(Math.min(1, width / measured), 1);
-      ctx.fillStyle = postText.primary;
-      ctx.fillText(prefix, 0, 0);
-      ctx.fillStyle = postText.accent;
-      ctx.fillText(line.slice(cut), ctx.measureText(prefix).width, 0);
+      drawHeadlineLine(ctx, line, parts.whiteLength);
+      parts.whiteLength -= line.length + 1;
       var client = /\bclient\b/i.exec(line);
       if (client) {
         var word = ctx.measureText(client[0]);
@@ -375,14 +462,15 @@
     });
 
     setFont(ctx, 34, '600', family);
-    var caption = wrapTextLines(ctx, state.meetingCaption, width);
+    var caption = chat ? [] : wrapTextLines(ctx, state.meetingCaption, width);
     var author = state.showAuthor && (state.authorName || '').trim();
     var footerHeight = (author ? 116 : 80) + caption.length * 43;
     var bottom = H - footerHeight;
-    var photo = state.meetingImg;
+    var photo = chat ? state.chatImg : state.meetingImg;
     var availableHeight = bottom - header;
-    var monitorBottom = drawMonitor(ctx, photo, edge, header, W - 2 * edge, availableHeight,
-      state.meetingFit, state.meetingZoom, state.meetingOffsetY);
+    var monitorBottom = drawScreenFrame(ctx, photo, edge, header, W - 2 * edge, availableHeight,
+      chat ? 'contain' : state.meetingFit, chat ? 100 : state.meetingZoom,
+      chat ? 0 : state.meetingOffsetY, chat ? state.chatFrame : null);
     var textY = monitorBottom + 22;
     setFont(ctx, 34, '600', family);
     ctx.textAlign = 'center';
@@ -474,7 +562,7 @@
     y += titleRes.height + 16;
 
     var imageHeight = Math.min(H * .34, H - y - 358);
-    drawMonitor(ctx, state.projectImg, m, y, W - 2 * m, imageHeight,
+    drawScreenFrame(ctx, state.projectImg, m, y, W - 2 * m, imageHeight,
       state.projectFit || 'contain', state.projectZoom || 100, state.projectOffsetY || 0);
     y += imageHeight + 22;
 
@@ -609,19 +697,38 @@
 
   // ── Public API ──────────────────────────────────────────────
 
+  function chatSafeZone(width, height) {
+    var size = Math.min(width, height) * 5 / 6;
+    return { x: (width - size) / 2, y: (height - size) / 2, size: size };
+  }
+
   window.Renderer = {
+    chatSafeZone: chatSafeZone,
     landmark: landmark,
     renderToContext: function(ctx, W, H, state) {
       var id = state.templateId || 'meeting';
       var templates = {
-        meeting: renderMeeting, casestudy: renderCaseStudy, project: renderProject,
+        meeting: renderMeeting, chat: renderMeeting, casestudy: renderCaseStudy, project: renderProject,
         service: renderService, tip: renderTip
       };
       var renderTemplate = templates[id];
       if (!Object.prototype.hasOwnProperty.call(templates, id)) return { overflow: false };
+      if (id === 'chat' && state.chatCountry) {
+        var country = window.COUNTRIES.find(function(c) { return c.code === state.chatCountry; });
+        if (country) state = Object.assign({}, state, {countryCode: country.code, countryLabel: country.name});
+      }
       drawPostBackground(ctx, W, H, state);
+      ctx.save();
+      if (id === 'chat') {
+        var safe = chatSafeZone(W, H);
+        var scale = safe.size / W;
+        ctx.translate(safe.x, safe.y);
+        ctx.scale(scale, scale);
+        H = W;
+      }
       var result = renderTemplate(ctx, W, H, state);
       drawPostFooter(ctx, W, H, state);
+      ctx.restore();
       return result;
     },
 
