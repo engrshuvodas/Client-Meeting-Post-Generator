@@ -6,7 +6,8 @@
 
   var DEFAULT_STATE = {
     templateId: 'meeting',
-    format: 'auto',         // 'square' (1080x1080), 'portrait45' (1080x1350), 'portrait34' (1080x1440)
+    textSizes: {},
+    format: 'square',         // 'square' (1080x1080), 'portrait45' (1080x1350), 'portrait34' (1080x1440)
     brandColor: '#1DBF73',
     fontFamily: 'Manrope',    // 'Manrope' or 'Inter'
     bgColor: '#FFFFFF',
@@ -17,6 +18,7 @@
 
     // Meeting template
     meetingTitle: 'Client',
+    meetingHeadlineOffsetY: 0,
     meetingTitleAccent: 'Meeting',
     meetingCaption: '',
     meetingFit: 'contain',    // 'contain' or 'cover'
@@ -24,6 +26,7 @@
     meetingOffsetY: 0,        // pixels -200 to +200
 
     chatHeadline: 'Client',
+    chatHeadlineOffsetY: 0,
     chatHeadlineAccent: 'Conversation',
     chatFrame: 'phone',
     chatCountry: '',
@@ -82,6 +85,7 @@
       state[key + 'Accent'] = words.pop();
       state[key] = words.join(' ');
     });
+    if (state.format === 'auto') state.format = DEFAULT_STATE.format;
     return state;
   }
 
@@ -91,7 +95,7 @@
       if (saved) {
         var parsed = JSON.parse(saved);
         if (parsed && typeof parsed === 'object') {
-          return restoreDefaults(parsed);
+          return restoreDefaults(Object.assign({}, parsed, { format: DEFAULT_STATE.format }));
         }
       }
     } catch(e) {}

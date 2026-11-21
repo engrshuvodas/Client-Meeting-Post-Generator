@@ -59,6 +59,8 @@
               <input type="text" id="meetingTitleAccent" maxlength="75" value="Meeting">
             </label>
           </div>
+          <label for="meetingHeadlineOffsetY">Headline vertical position <span id="meetingHeadlineOffsetYValue" class="val-badge">0 px</span></label>
+          <input type="range" id="meetingHeadlineOffsetY" min="-48" max="48" step="1" value="0">
           <label for="meetingCaption">Caption</label>
           <input type="text" id="meetingCaption" maxlength="90" placeholder="Optional caption">
           <label for="countrySearch">Client country / region</label>
@@ -111,6 +113,8 @@
               <input type="text" id="chatHeadlineAccent" maxlength="75" value="Conversation">
             </label>
           </div>
+          <label for="chatHeadlineOffsetY">Headline vertical position <span id="chatHeadlineOffsetYValue" class="val-badge">0 px</span></label>
+          <input type="range" id="chatHeadlineOffsetY" min="-48" max="48" step="1" value="0">
           <label for="chatFrame">Screenshot frame</label>
           <select id="chatFrame">
             <option value="phone">Phone screen</option>
@@ -226,6 +230,11 @@
       </section>
 
       <!-- BRAND & CANVAS SETTINGS -->
+      <div class="control-body">
+        <label for="postTextSize">Text size <span class="val-badge" id="postTextSizeValue">100%</span></label>
+        <input type="range" id="postTextSize" min="75" max="125" step="1" value="100">
+      </div>
+
       <details class="control-section" id="sharedSettings" open>
         <summary>Brand &amp; Canvas Settings</summary>
         <div class="control-body">
@@ -244,8 +253,7 @@
           </label>
           <label for="formatSelect">Canvas aspect ratio
             <select id="formatSelect">
-              <option value="auto" selected>Template default</option>
-              <option value="square">1:1 Square — 1080 x 1080 (Universal)</option>
+              <option value="square" selected>1:1 Square — 1080 x 1080 (Universal)</option>
               <option value="portrait45">4:5 Portrait — 1080 x 1350 (IG / FB)</option>
               <option value="portrait34">3:4 Portrait — 1080 x 1440 (Carousel)</option>
             </select>

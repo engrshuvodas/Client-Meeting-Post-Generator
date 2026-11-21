@@ -75,6 +75,10 @@
 
   function showTemplate(tpl) {
     window.PreviewTools.select(tpl);
+    var sizes = window.AppState.get().textSizes || {};
+    var slider = document.getElementById('postTextSize');
+    slider.value = sizes[tpl] || 100;
+    showTextSize(slider);
     document.querySelectorAll('.tab-btn').forEach(function(t) {
       t.classList.toggle('active', t.dataset.template === tpl);
       t.setAttribute('aria-selected', t.dataset.template === tpl ? 'true' : 'false');
@@ -98,14 +102,8 @@
 
   // ── Canvas Dimensions & Aspect Ratio ────────────────────────
 
-  function dimensionsFor(format, template) {
-    if (format === 'auto' && template === 'chat') return FORMATS.portrait45;
-    if (format === 'auto' && template === 'meeting') return {w: 1080, h: 818, label: '1080 × 818 px (Meeting cover)'};
-    return FORMATS[format] || FORMATS.square;
-  }
-
   function applyFormat(formatKey) {
-    var fmt = dimensionsFor(formatKey, window.AppState.get().templateId);
+    var fmt = FORMATS[formatKey] || FORMATS.square;
     canvas.width = fmt.w;
     canvas.height = fmt.h;
     if (canvasWrapper) {
@@ -333,7 +331,34 @@
     });
   }
 
+  var headlineSliders = ['meetingHeadlineOffsetY', 'chatHeadlineOffsetY'];
+
+  function showHeadlineOffset(key, value) {
+    document.getElementById(key + 'Value').textContent = value + ' px';
+    document.getElementById(key).setAttribute('aria-valuetext', value + ' pixels');
+  }
+
+  function showTextSize(slider) {
+    document.getElementById('postTextSizeValue').textContent = slider.value + '%';
+    slider.setAttribute('aria-valuetext', slider.value + ' percent');
+  }
+
   function initInputBindings() {
+    var textSlider = document.getElementById('postTextSize');
+    textSlider.addEventListener('input', function() {
+      var state = window.AppState.get();
+      var sizes = Object.assign({}, state.textSizes);
+      sizes[state.templateId] = Number(textSlider.value);
+      window.AppState.set({textSizes: sizes});
+      showTextSize(textSlider);
+      render();
+    });
+    headlineSliders.forEach(function(key) {
+      bindInput(key, key, function(value) {
+        showHeadlineOffset(key, value);
+        return Number(value);
+      });
+    });
     bindInput('chatHeadline', 'chatHeadline');
     bindInput('chatHeadlineAccent', 'chatHeadlineAccent');
     bindInput('chatFrame', 'chatFrame');
@@ -463,7 +488,7 @@
 
   function renderToExportCanvas(state, scale) {
     scale = scale || 1;
-    var fmt = dimensionsFor(state.format, state.templateId);
+    var fmt = FORMATS[state.format] || FORMATS.square;
     var exportCanvas = document.createElement('canvas');
     exportCanvas.width = fmt.w * scale;
     exportCanvas.height = fmt.h * scale;
@@ -533,6 +558,11 @@
 
   function hydrateForm(state) {
     showTemplate(state.templateId);
+    headlineSliders.forEach(function(key) {
+      var slider = document.getElementById(key);
+      slider.value = state[key] || 0;
+      showHeadlineOffset(key, slider.value);
+    });
     var fields = {
       chatHeadline: 'chatHeadline',
       chatHeadlineAccent: 'chatHeadlineAccent',

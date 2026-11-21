@@ -10,6 +10,7 @@
   // ── Typography & Layout Helpers ─────────────────────────────
 
   function setFont(ctx, size, weight, family) {
+    size *= ctx.postTextScale;
     var fam = family || 'Manrope';
     ctx.font = (weight || '400') + ' ' + size + 'px "' + fam + '", "Inter", -apple-system, BlinkMacSystemFont, sans-serif';
     ctx.textBaseline = 'top';
@@ -50,7 +51,7 @@
     }
 
     setFont(ctx, size, weight || '800', family);
-    var lineH = Math.round(size * (lineHMult || 1.18));
+    var lineH = Math.round(size * ctx.postTextScale * (lineHMult || 1.18));
     ctx.fillStyle = color;
     for (var j = 0; j < lines.length; j++) {
       ctx.fillText(lines[j], x, y + j * lineH);
@@ -68,7 +69,7 @@
     text = String(text || '').trim();
     if (!text) return { height: 0, linesDrawn: 0 };
     setFont(ctx, fontSize, weight || '400', family);
-    var lineH = Math.round(fontSize * (lineHMult || 1.55));
+    var lineH = Math.round(fontSize * ctx.postTextScale * (lineHMult || 1.55));
     var lines = wrapTextLines(ctx, text, maxW);
     ctx.fillStyle = color;
     for (var j = 0; j < lines.length; j++) {
@@ -354,12 +355,12 @@
     setFont(ctx, 38, '700', state.fontFamily);
     var countryLines = wrapTextLines(ctx, state.countryLabel, textWidth);
     var flagSize = 84;
-    var flagTop = middle - (flagSize + 18 + countryLines.length * 45) / 2;
+    var flagTop = middle - (flagSize + 18 + countryLines.length * 45 * ctx.postTextScale) / 2;
     drawFlag(ctx, state.countryCode, leftCenter - flagSize / 2, flagTop, flagSize, flagSize, state);
     ctx.textAlign = 'center';
     ctx.fillStyle = postText.primary;
     countryLines.forEach(function(line, i) {
-      ctx.fillText(line, leftCenter, flagTop + flagSize + 18 + i * 45, textWidth);
+      ctx.fillText(line, leftCenter, flagTop + flagSize + 18 + i * 45 * ctx.postTextScale, textWidth);
     });
 
     var parts = headlineParts(state, 'chatHeadline');
@@ -373,9 +374,9 @@
         if (lines.length <= 5) break;
         size -= 2;
       } while (size > 32);
-      var lineHeight = Math.ceil(size * 1.14);
+      var lineHeight = Math.ceil(size * ctx.postTextScale * 1.14);
       var rightX = phoneX + phoneSlot + inset;
-      var startY = middle - lines.length * lineHeight / 2;
+      var startY = middle - lines.length * lineHeight / 2 + Number(state.chatHeadlineOffsetY || 0);
       drawHRule(ctx, rightX, startY - 17, 42, postText.accent, 3);
       lines.forEach(function(line, i) {
         ctx.save();
@@ -420,7 +421,7 @@
       size -= 2;
     } while (size >= 30);
     // Center the flag and its label as one unit, then each headline line.
-    var flagY = Math.max(24, (header - (98 + size * lines.length + 28)) / 2);
+    var flagY = Math.max(24, (header - (98 + size * ctx.postTextScale * lines.length + 28)) / 2);
     if (!chat) flagY = Math.max(flagY, Math.ceil(meetingSafeTop(W, H)) + 16);
     var country = (state.countryLabel || '').trim();
     setFont(ctx, 53, '700', family);
@@ -434,11 +435,12 @@
     }
 
     setFont(ctx, size, '800', family);
-    var top = flagY + 98;
+    var headlineOffset = chat ? state.chatHeadlineOffsetY : state.meetingHeadlineOffsetY;
+    var top = flagY + 98 + Number(headlineOffset || 0);
     lines.forEach(function(line, i) {
       var measured = ctx.measureText(line).width;
       ctx.save();
-      ctx.translate(center - Math.min(width, measured) / 2, top + i * size);
+      ctx.translate(center - Math.min(width, measured) / 2, top + i * size * ctx.postTextScale);
       ctx.scale(Math.min(1, width / measured), 1);
       drawHeadlineLine(ctx, line, parts.whiteLength);
       parts.whiteLength -= line.length + 1;
@@ -464,7 +466,7 @@
     setFont(ctx, 34, '600', family);
     var caption = chat ? [] : wrapTextLines(ctx, state.meetingCaption, width);
     var author = state.showAuthor && (state.authorName || '').trim();
-    var footerHeight = (author ? 116 : 80) + caption.length * 43;
+    var footerHeight = (author ? 116 : 80) + caption.length * 43 * ctx.postTextScale;
     var bottom = H - footerHeight;
     var photo = chat ? state.chatImg : state.meetingImg;
     var availableHeight = bottom - header;
@@ -477,7 +479,7 @@
     ctx.fillStyle = postText.primary;
     caption.forEach(function(line) {
       ctx.fillText(line, center, textY, width);
-      textY += 43;
+      textY += 43 * ctx.postTextScale;
     });
     return { overflow: false };
   }
@@ -570,7 +572,7 @@
     var tags = Array.isArray(state.projectTech) ? state.projectTech : ['React', 'Node.js', 'PostgreSQL'];
     setFont(ctx, 18, '600', family);
     var tagX = m;
-    var pillH = 32;
+    var pillH = 32 * ctx.postTextScale;
     var pillPadX = 14;
 
     tags.forEach(function(tag) {
@@ -654,8 +656,8 @@
 
       setFont(ctx, 28, '500', family);
       ctx.fillStyle = dark;
-      ctx.fillText(b, m + 34, y);
-      y += 46;
+      ctx.fillText(b, m + 34, y, W - 2 * m - 34);
+      y += 46 * ctx.postTextScale;
     });
 
     return { overflow: y > H - m - 40 };
@@ -717,6 +719,8 @@
         var country = window.COUNTRIES.find(function(c) { return c.code === state.chatCountry; });
         if (country) state = Object.assign({}, state, {countryCode: country.code, countryLabel: country.name});
       }
+      var percent = Number(state.textSizes && state.textSizes[id]) || 100;
+      ctx.postTextScale = Math.max(75, Math.min(125, percent)) / 100;
       drawPostBackground(ctx, W, H, state);
       ctx.save();
       if (id === 'chat') {
