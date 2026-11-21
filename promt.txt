@@ -1,0 +1,918 @@
+#from chatgptt
+
+
+
+
+
+
+# MASTER PROMPT — PREMIUM BRAND CONTENT DESIGN STUDIO
+
+## YOUR ROLE
+
+Act as a Senior Brand Identity Designer, Editorial Graphic Designer, UI/UX Designer, and Expert Frontend Engineer with deep experience in HTML, CSS, and vanilla JavaScript.
+
+I already have an existing project called "Client Carousel Studio", built using HTML, CSS, and JavaScript.
+
+The existing software can generate Instagram carousel images, but the current designs look too much like AI-generated graphics rather than professional work created by an experienced human graphic designer.
+
+I want you to completely redesign and improve this application into a premium, reusable social media graphic design studio for my personal professional branding.
+
+**My personal branding:**
+- Brand name: Engr. Shuvo Das
+- Industry: Software Engineering, Web Development, Automation, and Digital Solutions
+- Brand inspiration: Fiverr
+- Primary color: #1DBF73
+- Secondary color: #404145
+- Dark typography: #222325
+- White: #FFFFFF
+- Light neutral background: #F4F5F3
+- Optional deep green: #003912
+
+The final result must feel like a premium design system created by a professional branding agency.
+
+This is not simply a dashboard redesign. The most important deliverable is the quality of the actual exported social media graphics.
+
+---
+
+# 1. FIRST ANALYZE MY EXISTING PROJECT
+
+Before making changes:
+
+1. Inspect my current HTML, CSS, and JavaScript files.
+2. Understand how the existing design editor works.
+3. Identify the content-editing functionality.
+4. Identify screenshot upload and preview functionality.
+5. Identify the country and flag selector.
+6. Identify the current image-export method.
+7. Preserve useful functionality wherever possible.
+8. Replace the existing visual design and rendering system where necessary.
+
+Do not merely change a few CSS colors or borders.
+
+I need a meaningful redesign of both the software interface and the exported graphic templates.
+
+Use my existing project as the starting point.
+
+Keep the project maintainable and editable.
+
+---
+
+# 2. THE MOST IMPORTANT DESIGN DIRECTION
+
+The designs must look like something a skilled human graphic designer would create in Adobe Illustrator, Photoshop, Figma, or InDesign.
+
+Use a modern, Swiss-inspired editorial graphic design approach.
+
+Visual characteristics:
+
+- Strong typography
+- Minimalism
+- Deliberate asymmetrical compositions where appropriate
+- Consistent alignment
+- Beautiful negative space
+- Professional grid systems
+- Precise visual hierarchy
+- Carefully balanced proportions
+- Premium photography and screenshot presentation
+- Clear brand recognition
+- Clean graphic shapes used only when they serve the layout
+- Restrained use of Fiverr Green
+- Consistent spacing
+- Excellent readability
+- Sophisticated but simple visual compositions
+
+Use green as a deliberate brand accent, not as a decoration everywhere.
+
+Avoid AI-generated design aesthetics entirely.
+
+## STRICTLY AVOID
+
+- Neon green
+- Glowing borders
+- Gradient backgrounds
+- Cyberpunk elements
+- Fake dashboard elements
+- Fake browser windows
+- Decorative macOS window mockups
+- Oversized glassmorphism cards
+- Unnecessary rounded containers
+- Floating random shapes
+- Fake analytics statistics
+- Futuristic circuit decorations
+- Unnecessary emojis
+- Overuse of icons
+- Tiny text
+- Excessive labels and badges
+- Multiple competing fonts
+- Excessive shadows
+- Random decorative lines
+- Very dark backgrounds on every slide
+- Overcrowded layouts
+- Marketing graphics that resemble generic AI templates
+
+Use flat, solid backgrounds with carefully selected typography.
+
+Every visual element must have a real design purpose.
+
+---
+
+# 3. OUTPUT SIZE AND CROSS-PLATFORM COMPATIBILITY
+
+I publish content on:
+
+- Instagram
+- Facebook
+- LinkedIn
+- X / Twitter
+- Other social platforms
+
+I want to reuse the same exported image across these platforms.
+
+## DEFAULT MASTER FORMAT
+
+Make the primary design canvas:
+
+**1080 × 1080 pixels — 1:1 square**
+
+This must be the default export format.
+
+The square format is my preferred universal social media graphic format.
+
+Do not stretch or distort the design.
+
+## SAFE CONTENT POSITIONING
+
+The composition must be designed to remain visually strong even when social media platforms display different thumbnail crops.
+
+Implement these design rules:
+
+- Master canvas: 1080 × 1080 px
+- Main layout margin: approximately 90 px
+- Critical text and logos should remain within a central 810 px wide safe zone whenever practical.
+- Do not position essential content directly against the canvas edges.
+- Avoid text or important objects at the extreme top or bottom.
+- Keep headlines, screenshots, and flags comfortably inside the canvas.
+- Ensure the design is balanced in square previews.
+- Provide an optional Instagram profile-grid crop preview.
+- Provide preview overlays for 1:1, 3:4, and 4:5 crops.
+- Overlays must appear only in the editor, never in exported images.
+
+The editor should help me understand what may be cropped on different platforms.
+
+Do not claim that every platform displays all aspect ratios identically.
+
+## OPTIONAL FORMATS
+
+Support optional:
+
+- 1080 × 1350 (4:5)
+- 1080 × 1440 (3:4)
+
+However, 1080 × 1080 must remain the default.
+
+For alternate formats, intelligently reflow the composition rather than stretch a square image.
+
+Use shared design components and platform-specific layout rules.
+
+---
+
+# 4. CREATE ONE CONSISTENT BRAND DESIGN SYSTEM
+
+Create a unified visual system called:
+
+**SHUVO BRAND STUDIO**
+
+Every design must clearly belong to the same brand family.
+
+Establish reusable design tokens.
+
+### COLOR SYSTEM
+
+Primary green:
+#1DBF73
+
+Charcoal:
+#404145
+
+Dark:
+#222325
+
+White:
+#FFFFFF
+
+Light background:
+#F4F5F3
+
+Optional deep green:
+#003912
+
+### COLOR USAGE
+
+Prefer:
+
+- White backgrounds
+- Light gray backgrounds
+- Dark charcoal headlines
+- Green accents
+- Green section identifiers
+- Minimal green rules or rectangular elements
+
+Do not make every element green.
+
+Create contrast through typography, whitespace, and composition rather than glow effects.
+
+### TYPOGRAPHY
+
+Choose a premium modern sans-serif typography system.
+
+Preferred fonts:
+
+- Manrope
+- Inter
+
+Use one primary font family, optionally supported by one secondary font if truly necessary.
+
+Establish clear font weights:
+
+- ExtraBold / Bold for major headlines
+- SemiBold for section titles
+- Regular / Medium for body text
+- Medium for small brand details
+
+Typography must be readable on mobile devices.
+
+Avoid extremely small body text.
+
+Recommended starting sizes for a 1080 px square:
+
+- Main headline: 68–96 px
+- Secondary headline: 46–60 px
+- Section heading: 30–38 px
+- Body text: 30–38 px
+- Supporting details: 24–28 px
+
+Adjust sizes based on actual layout and content length.
+
+Preserve excellent line height and natural line wrapping.
+
+Do not simply shrink text until it fits.
+
+Use graceful overflow handling and provide warnings for excessive text.
+
+---
+
+# 5. BUILD FIVE HIGH-QUALITY REUSABLE TEMPLATES
+
+I need more than one generic layout.
+
+Create five distinct but visually consistent templates.
+
+Every template must share the same brand identity, typography, spacing principles, and color system.
+
+## TEMPLATE 01 — CLIENT MEETING
+
+Purpose:
+Share an authentic screenshot from a client meeting.
+
+Editable data:
+
+- Country / Region
+- Country Flag
+- Original Meeting Screenshot
+
+This template must prioritize the real meeting screenshot.
+
+### DESIGN CONCEPT
+
+Premium editorial image composition.
+
+- Clean light or white background
+- Strong visual emphasis on the meeting screenshot
+- Country name with its corresponding flag
+- Excellent negative space
+- Balanced alignment
+- Screenshot displayed clearly and at a useful size
+- Minimal graphic accent using Fiverr Green
+
+Do not add oversized "CLIENT MEETING" typography by default.
+
+Do not add fake browser chrome or fake video call interfaces.
+
+Do not recreate meeting participants using AI.
+
+Do not add unnecessary text, numbers, promotional callouts, engagement hooks, or decorative badges.
+
+The default meeting cover should contain only the authentic meeting screenshot, the selected country and flag, and essential brand treatment if it does not compete with the image.
+
+The screenshot itself must remain unaltered.
+
+Support:
+
+- Original aspect ratio preservation
+- Contain / fit image display
+- Image positioning
+- Zoom without destructive editing
+- Clean image boundaries
+- High-quality rendering
+
+Never apply AI transformations or filters to meeting screenshots.
+
+The photo must look exactly like the uploaded original.
+
+## TEMPLATE 02 — PROFESSIONAL CASE STUDY
+
+Purpose:
+Explain a real client's challenge, my solution, and the verified outcome.
+
+Editable fields:
+
+- Case Study Title
+- Project Category
+- Client's Problem
+- My Solution
+- Verified Result (optional)
+- Optional project screenshot
+
+### DESIGN CONCEPT
+
+Use a professional editorial case-study composition.
+
+Suggested content structure:
+
+CASE STUDY
+
+Main headline
+
+01 / THE CHALLENGE
+
+Actual problem description
+
+02 / THE SOLUTION
+
+What I developed or implemented
+
+03 / THE OUTCOME
+
+Verified result, when available
+
+Use typography, grid alignment, spacing, and thin rules to separate sections.
+
+Do not use large colored glowing cards to contain each paragraph.
+
+If there is too much text, intelligently distribute the content across additional slides or show a clear overflow warning.
+
+Do not squeeze extensive case-study text into one unreadable image.
+
+If the user has not entered a verified result, omit the outcome section.
+
+Never invent statistics, performance improvements, customer results, or success claims.
+
+This template must look suitable for a serious software engineering portfolio.
+
+## TEMPLATE 03 — PROJECT SHOWCASE
+
+Purpose:
+Share screenshots of websites, dashboards, web apps, software, and other completed development projects.
+
+Editable fields:
+
+- Project Title
+- Project Type
+- Project Screenshot
+- Technologies Used
+- Short Project Description
+- Optional Verified Highlights
+
+### DESIGN CONCEPT
+
+Make the project screenshot the visual hero.
+
+Use:
+
+- Large clear screenshot
+- Beautiful typography
+- Minimal project details
+- Professional spacing
+- Clean technical labeling
+- Restrained green accents
+
+Avoid fake laptop frames, exaggerated device mockups, and fake metrics.
+
+Do not hide the actual project behind decorative elements.
+
+## TEMPLATE 04 — SERVICE HIGHLIGHT
+
+Purpose:
+Promote one of my professional services.
+
+Editable fields:
+
+- Service Name
+- Main Headline
+- Short Description
+- Three Key Benefits
+- Optional Image or Graphic
+
+Example services:
+
+- Custom Website Development
+- Full-Stack Web Development
+- Business Website Development
+- WordPress Development
+- API Integration
+- Business Automation
+- Custom Software Development
+
+### DESIGN CONCEPT
+
+Minimal premium advertising design.
+
+Use a bold editorial headline, generous white space, and a concise service description.
+
+Do not create a crowded, overly promotional poster.
+
+Make it look like a premium technology company advertisement.
+
+No fake client counts, ratings, or results.
+
+## TEMPLATE 05 — PROFESSIONAL TIP / INSIGHT
+
+Purpose:
+Post daily web development, software engineering, business, and technology tips.
+
+Editable fields:
+
+- Topic
+- Headline
+- Short Insight
+- Optional Supporting Points
+- Optional Category
+
+### DESIGN CONCEPT
+
+Make typography the main visual element.
+
+Use a sophisticated editorial quote/poster style.
+
+Create a clean hierarchy with one dominant idea.
+
+Do not fill the empty space with meaningless shapes.
+
+The design should feel premium even without any uploaded image.
+
+---
+
+# 6. EDITOR / SOFTWARE INTERFACE REDESIGN
+
+The software interface must also look professional.
+
+Design it as a sophisticated creative tool.
+
+Think:
+
+- Figma-inspired usability
+- A modern editorial design editor
+- A premium lightweight creative workspace
+
+Do not replicate an AI SaaS dashboard.
+
+## DESKTOP LAYOUT
+
+LEFT SIDEBAR
+
+- Template selector
+- Content input fields
+- Screenshot uploader
+- Country selector
+- Layout settings
+- Brand settings
+
+CENTER WORKSPACE
+
+- Large live graphic preview
+- Correct square canvas
+- Actual export appearance
+- Optional crop-safety overlays
+- Zoom controls
+- Clean canvas background
+
+TOP TOOLBAR
+
+- Project Name
+- New Project
+- Save Project
+- Load Project
+- Export PNG
+- Export All Slides
+
+RIGHT PANEL (OPTIONAL)
+
+- Typography settings
+- Spacing settings
+- Image positioning
+- Template-specific settings
+
+Use restrained borders, flat surfaces, consistent icons, and clear UI labels.
+
+The interface must remain functional on different desktop and tablet sizes.
+
+The actual creative canvas should be the visual priority.
+
+---
+
+# 7. MAKE ALL CONTENT EDITABLE EVERY DAY
+
+This is essential.
+
+I do not want to edit code whenever I create a new social media post.
+
+I want to open the software, replace the content, and export a finished graphic.
+
+All templates must have dynamic input fields.
+
+Changing a field must immediately update the canvas.
+
+Implement:
+
+- Live text editing
+- Screenshot uploads
+- Country search
+- Country flag selection
+- Editable project names
+- Editable headings
+- Editable descriptions
+- Optional content sections
+- Toggle fields on and off
+- Image zoom and positioning
+- Template switching
+- Automatic text wrapping
+- Overflow detection
+- Character-length recommendations
+- Reset template
+- Duplicate slide
+- Reorder slides
+- Delete slide
+- Save custom defaults
+
+For content with too much text, provide a clear warning and suggestions instead of silently reducing everything to tiny typography.
+
+All controls must actually work.
+
+Avoid decorative or nonfunctional UI controls.
+
+---
+
+# 8. COUNTRY AND FLAG SELECTOR
+
+Retain and improve my existing country selector.
+
+Features:
+
+- Search countries by name
+- Display correct country flags
+- Display country names
+- Allow manually editing the displayed country name
+- Preserve the correct selected flag
+- Support international client posts
+
+The selected country and flag must be positioned elegantly and consistently.
+
+For example:
+
+🇦🇪 United Arab Emirates
+
+Do not make it look like a gaming badge or a glowing notification.
+
+Use elegant, minimal typography.
+
+---
+
+# 9. SCREENSHOT UPLOAD RULES
+
+Uploaded screenshots are authentic source materials.
+
+Never change their content.
+
+Do not:
+
+- Generate replacement screenshots
+- Blur faces automatically
+- Change participants
+- Add fake meeting elements
+- Invent project screenshots
+- Recreate the screen with AI
+- Apply color filters that alter screenshot appearance
+
+Allow CSS presentation such as:
+
+- Scaling
+- Alignment
+- Non-destructive framing
+- Aspect-ratio preservation
+
+Use object-fit: contain by default for meeting screenshots.
+
+The screenshot should remain sharp and readable wherever possible.
+
+If the source screenshot is low resolution, warn the user rather than inventing detail.
+
+---
+
+# 10. PROFESSIONAL SPACING AND GRID SYSTEM
+
+Build a consistent design grid.
+
+Use a baseline spacing system such as:
+
+8 / 16 / 24 / 32 / 48 / 64 / 80 / 96 px
+
+Use consistent:
+
+- Margins
+- Column gaps
+- Text alignment
+- Section spacing
+- Headline positioning
+- Image boundaries
+- Footer positioning
+- Typography proportions
+
+Avoid positioning every element randomly.
+
+The user should feel that every slide comes from one professionally designed brand system.
+
+Do not use arbitrary absolute positioning for dynamic text without handling content changes.
+
+Use CSS Grid and Flexbox where appropriate, with carefully defined fixed-canvas compositions.
+
+---
+
+# 11. EXPORT AND IMAGE QUALITY
+
+Export quality is extremely important.
+
+Support:
+
+- Export current slide as PNG
+- Export all slides as PNG
+- Download all slides as ZIP
+- Native export at 1080 × 1080 px
+- Optional 2× export at 2160 × 2160 px
+- Optional format-specific exports
+
+The exported PNG must match the editor preview.
+
+Ensure:
+
+- Crisp text
+- Sharp uploaded images
+- No missing fonts
+- No clipping
+- No unexpected whitespace
+- No browser UI in the export
+- No crop guides in exports
+- No blurry scaling
+- No missing flags
+- Accurate brand colors
+- Correct dimensions
+
+Use a reliable client-side rendering/export mechanism.
+
+Suitable libraries may be used where necessary, such as html-to-image and JSZip, but keep the application lightweight.
+
+Ensure fonts and uploaded images are fully loaded before export.
+
+Do not export a screenshot of the editor interface.
+
+Export only the actual graphic canvas.
+
+---
+
+# 12. SAVE AND LOAD PROJECTS
+
+I want to reuse this tool every day.
+
+Implement:
+
+- Save project
+- Load project
+- Local project persistence
+- Export project as JSON
+- Import project from JSON
+- Restore template content
+- Restore design settings
+- Restore screenshot references or embedded images
+- Duplicate existing project
+
+Use IndexedDB where needed for larger uploaded image assets.
+
+Make sure image data does not disappear unexpectedly after refreshing the application.
+
+This software should work as a practical long-term content creation system.
+
+Prefer a privacy-friendly, browser-based workflow.
+
+---
+
+# 13. CUSTOMIZATION WITHOUT LOSING BRAND CONSISTENCY
+
+Allow customization of:
+
+- Text content
+- Image
+- Text alignment where appropriate
+- Template selection
+- Layout variation
+- Background color from the brand palette
+- Heading size within sensible limits
+- Image size and position
+- Content visibility
+
+However, do not allow random customization to destroy the visual identity.
+
+Create designer-approved layout variants rather than unlimited arbitrary decoration.
+
+A premium brand design system should maintain consistency.
+
+---
+
+# 14. RESPONSIVENESS
+
+The editor must be usable on:
+
+- Large desktop screens
+- Standard laptops
+- Tablets
+
+On smaller screens:
+
+- Collapse the settings sidebar
+- Keep the canvas visible
+- Scale the preview proportionally
+- Keep export resolution independent from the preview size
+- Maintain readable controls
+
+Responsive editor scaling must not affect the final image dimensions.
+
+---
+
+# 15. DESIGN DETAILS THAT MATTER
+
+Pay special attention to:
+
+1. Headline line breaks.
+2. Optical alignment.
+3. Whitespace balance.
+4. Contrast between main and secondary content.
+5. Consistent typography.
+6. Image-to-text proportions.
+7. Professional editorial composition.
+8. Country and flag positioning.
+9. Mobile feed readability.
+10. Brand recognition.
+
+Use green only where it improves visual hierarchy.
+
+Prefer elegant white or soft-gray backgrounds over predominantly black designs.
+
+If a dark layout is offered, use a controlled flat charcoal background instead of gradient effects.
+
+Each template should feel intentional, refined, and distinctive.
+
+---
+
+# 16. REAL CONTENT AND AUTHENTICITY
+
+This is my real professional brand.
+
+Do not automatically generate:
+
+- Fake testimonials
+- Fake client reviews
+- Fake financial results
+- Fake statistics
+- Fake software performance claims
+- Fake project outcomes
+- Fake meeting screenshots
+- Fake client identities
+
+Use only information entered by me.
+
+Demo data must be clearly identified as editable sample content, never as verified achievements.
+
+When a field is empty, use an appropriate empty state in the editor, but omit unnecessary placeholder content from final exports.
+
+---
+
+# 17. TECHNICAL IMPLEMENTATION
+
+Keep this project based on:
+
+- HTML5
+- CSS3
+- Vanilla JavaScript
+
+You may use well-established lightweight libraries for functionality such as image export, ZIP creation, or country metadata.
+
+Do not introduce React, Vue, or another major framework unless there is a compelling technical reason.
+
+Organize the code into clean modules or files, with clear separation between:
+
+- Application state
+- Template data
+- Design tokens
+- Editor components
+- Canvas rendering
+- Export functionality
+- Project persistence
+
+Do not use overly complicated code for simple features.
+
+Use CSS variables for the brand palette and typography tokens.
+
+Avoid inline styles scattered across the application.
+
+Use readable, maintainable JavaScript.
+
+Validate user input where appropriate.
+
+---
+
+# 18. QUALITY-ASSURANCE AND ACCEPTANCE TESTS
+
+Before you consider this project complete, test the following:
+
+### Design
+
+- All five templates use the same consistent brand identity.
+- Each template has its own professional composition.
+- There are no neon, glow, glassmorphism, or random decorative effects.
+- Typography is readable in a social media feed.
+- A professional graphic designer could reasonably use these templates for actual client-facing brand content.
+
+### Functionality
+
+- Editing every content field updates the preview.
+- Country selection works.
+- Country search works.
+- Screenshot upload works.
+- Template switching works.
+- Text wraps correctly.
+- Long content produces useful overflow handling.
+- Slide duplication and deletion work.
+- Saving and loading projects works.
+- Uploaded images are preserved.
+
+### Export
+
+- PNG dimensions are correct.
+- Screenshot content remains intact.
+- Fonts render properly.
+- Text is not clipped.
+- All design elements are positioned correctly.
+- Export matches preview.
+- Multi-slide ZIP export works.
+- Safe-zone overlays do not appear in exports.
+
+Test with both short and long content.
+
+Test with square, landscape, and portrait uploaded screenshots.
+
+Fix any visible overflow, clipping, or layout issues before finishing.
+
+---
+
+# 19. FINAL DELIVERY EXPECTATIONS
+
+Deliver a fully working redesign of my existing application.
+
+Do not deliver only design mockups or conceptual suggestions.
+
+Do not stop after modifying the dashboard.
+
+Prioritize this order:
+
+1. Quality of exported graphics.
+2. Consistent personal branding.
+3. Ease of editing daily content.
+4. Accurate, high-resolution export.
+5. Clean and professional editor interface.
+6. Maintainable implementation.
+
+I want a professional tool that allows me to create publish-ready branded social media graphics every day without needing to redesign posts manually.
+
+## FINAL CREATIVE DIRECTION
+
+The finished software should feel like:
+
+**A professional editorial graphic design studio built specifically for the personal brand of Engr. Shuvo Das.**
+
+The designs should be minimal, bold, readable, timeless, and visually sophisticated.
+
+Think less "AI social media generator" and more "experienced brand designer's reusable design system."
+
+Do not add decorations to make the designs look impressive.
+
+Make them impressive through composition, typography, alignment, restraint, and visual clarity.
+
+Now inspect my current codebase, plan the necessary changes, implement the complete redesign, and test the working application and its exported graphics.
