@@ -96,113 +96,50 @@
     }
   }
 
-  // Draw the hardware in a fixed coordinate system so previews and exports match.
-  function drawLaptop(ctx, image, x, y, width, height, fit, zoom, offset) {
-    var scale = Math.min(width / 1000, height / 536);
-    if (scale <= 0) return y;
-    var top = y + (height - 536 * scale) / 2;
-    ctx.save();
-    ctx.translate(x + (width - 1000 * scale) / 2, top);
-    ctx.scale(scale, scale);
-    ctx.fillStyle = 'rgba(0,12,8,.45)';
-    ctx.beginPath();
-    ctx.ellipse(500, 525, 478, 10, 0, 0, Math.PI * 2);
-    ctx.fill();
+  function drawMonitor(ctx, image, x, y, width, height, fit, zoom, offset) {
+    if (width <= 0 || height <= 0) return y;
+    var hasImage = image && image.complete && image.naturalWidth;
+    var aspect = hasImage && fit !== 'cover' ? image.naturalWidth / image.naturalHeight : 16 / 9;
+    var bezel = 7;
+    var screenWidth = Math.max(1, Math.min(width - 24, (height - 30) * aspect));
+    var screenHeight = screenWidth / aspect;
+    var scale = (zoom || 100) / 100;
+    var outerHeight = screenHeight + 2 * bezel + 3;
+    var top = y + (height - outerHeight * scale) / 2 + (offset || 0);
 
-    ctx.fillStyle = '#111515';
-    ctx.strokeStyle = '#78817e';
-    ctx.lineWidth = 2;
+    ctx.save();
     ctx.beginPath();
-    ctx.roundRect(62, 2, 876, 500, 15);
+    ctx.rect(x, y, width, height);
+    ctx.clip();
+    ctx.translate(x + width / 2, top);
+    ctx.scale(scale, scale);
+    var left = -screenWidth / 2;
+    ctx.fillStyle = '#171c1c';
+    ctx.strokeStyle = '#818d87';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(left - bezel, 0, screenWidth + 2 * bezel, outerHeight, 10);
     ctx.fill();
     ctx.stroke();
-    ctx.fillStyle = '#525e59';
     ctx.beginPath();
-    ctx.arc(500, 12, 2.4, 0, Math.PI * 2);
-    ctx.fill();
-    drawScreenshotFrame(ctx, image, 77, 21, 846, 463, fit, zoom, offset / scale, false, '#161a19');
-
-    var metal = ctx.createLinearGradient(0, 496, 0, 525);
-    metal.addColorStop(0, '#c2c8c4');
-    metal.addColorStop(.30, '#909994');
-    metal.addColorStop(.53, '#616a66');
-    metal.addColorStop(1, '#242a27');
-    ctx.fillStyle = metal;
-    ctx.beginPath();
-    ctx.moveTo(62, 496); ctx.lineTo(938, 496);
-    ctx.lineTo(998, 507); ctx.quadraticCurveTo(991, 522, 956, 524);
-    ctx.lineTo(44, 524); ctx.quadraticCurveTo(9, 522, 2, 507);
-    ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#646e68';
-    ctx.beginPath();
-    ctx.roundRect(434, 497, 132, 6, [0, 0, 5, 5]);
-    ctx.fill();
-    ctx.restore();
-    return top + 536 * scale;
-  }
-
-  function drawScreenshotFrame(ctx, img, areaX, areaY, areaW, areaH, fitMode, zoomPct, offsetY, withBorder, matte) {
-    var zoom = (zoomPct || 100) / 100;
-    var oy = offsetY || 0;
-    fitMode = fitMode || 'contain';
-
-    ctx.save();
-    ctx.beginPath();
-    if (ctx.roundRect) {
-      ctx.roundRect(areaX, areaY, areaW, areaH, 4);
-    } else {
-      ctx.rect(areaX, areaY, areaW, areaH);
-    }
+    ctx.roundRect(left, bezel, screenWidth, screenHeight, 3);
     ctx.clip();
-
-    if (!img || !img.complete || !img.naturalWidth) {
-      // Empty placeholder state
-      ctx.fillStyle = '#F4F5F3';
-      ctx.fillRect(areaX, areaY, areaW, areaH);
-      ctx.strokeStyle = '#D9DAD8';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([6, 4]);
-      ctx.strokeRect(areaX + 0.5, areaY + 0.5, areaW - 1, areaH - 1);
-      ctx.setLineDash([]);
+    if (hasImage) {
+      var fitScale = Math.max(screenWidth / image.naturalWidth, screenHeight / image.naturalHeight);
+      var imgW = fitScale * image.naturalWidth;
+      var imgH = fitScale * image.naturalHeight;
+      ctx.drawImage(image, -imgW / 2, bezel + (screenHeight - imgH) / 2, imgW, imgH);
+    } else {
+      ctx.fillStyle = '#20352d';
+      ctx.fillRect(left, bezel, screenWidth, screenHeight);
       setFont(ctx, 22, '500', 'Manrope');
-      ctx.fillStyle = '#8C8E8B';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('Upload authentic screenshot (PNG / JPG)', areaX + areaW / 2, areaY + areaH / 2);
-      ctx.restore();
-      return;
+      ctx.fillStyle = '#d9eee3';
+      ctx.fillText('Upload a screenshot', 0, bezel + screenHeight / 2, screenWidth);
     }
-
-    // High quality containment / cover scaling
-    var baseScale = fitMode === 'cover'
-      ? Math.max(areaW / img.naturalWidth, areaH / img.naturalHeight)
-      : Math.min(areaW / img.naturalWidth, areaH / img.naturalHeight);
-
-    var scale = baseScale * zoom;
-    var imgW = img.naturalWidth * scale;
-    var imgH = img.naturalHeight * scale;
-    var ix = areaX + (areaW - imgW) / 2;
-    var iy = areaY + (areaH - imgH) / 2 + oy;
-
-    // Clean neutral canvas background behind letterboxed image
-    ctx.fillStyle = matte || '#F4F5F3';
-    ctx.fillRect(areaX, areaY, areaW, areaH);
-
-    ctx.drawImage(img, ix, iy, imgW, imgH);
     ctx.restore();
-
-    // Subtle 1px framing border
-    if (withBorder !== false) {
-      ctx.strokeStyle = '#E8E9E7';
-      ctx.lineWidth = 1;
-      if (ctx.roundRect) {
-        ctx.beginPath();
-        ctx.roundRect(areaX + 0.5, areaY + 0.5, areaW - 1, areaH - 1, 4);
-        ctx.stroke();
-      } else {
-        ctx.strokeRect(areaX + 0.5, areaY + 0.5, areaW - 1, areaH - 1);
-      }
-    }
+    return Math.min(y + height, Math.max(y, top + outerHeight * scale));
   }
 
   // ── Template 01: Client Meeting ─────────────────────────────
@@ -444,9 +381,9 @@
     var bottom = H - footerHeight;
     var photo = state.meetingImg;
     var availableHeight = bottom - header;
-    var laptopBottom = drawLaptop(ctx, photo, edge, header, W - 2 * edge, availableHeight,
+    var monitorBottom = drawMonitor(ctx, photo, edge, header, W - 2 * edge, availableHeight,
       state.meetingFit, state.meetingZoom, state.meetingOffsetY);
-    var textY = laptopBottom + 22;
+    var textY = monitorBottom + 22;
     setFont(ctx, 34, '600', family);
     ctx.textAlign = 'center';
     ctx.fillStyle = postText.primary;
@@ -537,7 +474,7 @@
     y += titleRes.height + 16;
 
     var imageHeight = Math.min(H * .34, H - y - 358);
-    drawLaptop(ctx, state.projectImg, m, y, W - 2 * m, imageHeight,
+    drawMonitor(ctx, state.projectImg, m, y, W - 2 * m, imageHeight,
       state.projectFit || 'contain', state.projectZoom || 100, state.projectOffsetY || 0);
     y += imageHeight + 22;
 
