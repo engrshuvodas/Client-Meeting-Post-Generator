@@ -85,32 +85,60 @@
     ctx.fillRect(x, y, w, thickness || 1);
   }
 
-  function drawAuthorWatermark(ctx, W, H, m, state) {
-    if (!state.showAuthor) return;
-    var family = state.fontFamily || 'Manrope';
-    setFont(ctx, 22, '500', family);
-    ctx.textAlign = 'right';
-    ctx.fillStyle = state.bgColor === '#003912' ? '#dcf6e9' : '#404145';
-    var text = state.authorName || 'Engr. Shuvo Das';
-    ctx.fillText(text, W - m, H - m - 24);
-
-    // Subtle 4px green brand dot
-    var tw = ctx.measureText(text).width;
-    ctx.fillStyle = state.brandColor || '#1DBF73';
-    ctx.beginPath();
-    ctx.arc(W - m - tw - 12, H - m - 13, 3, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.textAlign = 'left';
-  }
-
   function drawFlag(ctx, code, x, y, w, h, state) {
     if (state && state.flagsImg && state.flagsImg.complete && state.flagsImg.naturalWidth) {
       window.drawCountryFlag(ctx, code, x, y, w, h, state.flagsImg, 2);
     } else {
       ctx.fillStyle = '#E8E9E7';
-      ctx.fillRect(x, y, w, h);
+      ctx.beginPath();
+      ctx.arc(x + w / 2, y + h / 2, Math.min(w, h) / 2, 0, Math.PI * 2);
+      ctx.fill();
     }
+  }
+
+  // Draw the hardware in a fixed coordinate system so previews and exports match.
+  function drawLaptop(ctx, image, x, y, width, height, fit, zoom, offset) {
+    var scale = Math.min(width / 1000, height / 536);
+    if (scale <= 0) return y;
+    var top = y + (height - 536 * scale) / 2;
+    ctx.save();
+    ctx.translate(x + (width - 1000 * scale) / 2, top);
+    ctx.scale(scale, scale);
+    ctx.fillStyle = 'rgba(0,12,8,.45)';
+    ctx.beginPath();
+    ctx.ellipse(500, 525, 478, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#111515';
+    ctx.strokeStyle = '#78817e';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(62, 2, 876, 500, 15);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#525e59';
+    ctx.beginPath();
+    ctx.arc(500, 12, 2.4, 0, Math.PI * 2);
+    ctx.fill();
+    drawScreenshotFrame(ctx, image, 77, 21, 846, 463, fit, zoom, offset / scale, false, '#161a19');
+
+    var metal = ctx.createLinearGradient(0, 496, 0, 525);
+    metal.addColorStop(0, '#c2c8c4');
+    metal.addColorStop(.30, '#909994');
+    metal.addColorStop(.53, '#616a66');
+    metal.addColorStop(1, '#242a27');
+    ctx.fillStyle = metal;
+    ctx.beginPath();
+    ctx.moveTo(62, 496); ctx.lineTo(938, 496);
+    ctx.lineTo(998, 507); ctx.quadraticCurveTo(991, 522, 956, 524);
+    ctx.lineTo(44, 524); ctx.quadraticCurveTo(9, 522, 2, 507);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#646e68';
+    ctx.beginPath();
+    ctx.roundRect(434, 497, 132, 6, [0, 0, 5, 5]);
+    ctx.fill();
+    ctx.restore();
+    return top + 536 * scale;
   }
 
   function drawScreenshotFrame(ctx, img, areaX, areaY, areaW, areaH, fitMode, zoomPct, offsetY, withBorder, matte) {
@@ -248,14 +276,16 @@
     ctx.restore();
   }
 
-  var landmark = new Image();
-  landmark.src = window.MEETING_ART.landmark;
+  var postText = {
+    primary: '#FCFAF2',
+    accent: '#B3FFD3',
+    secondary: '#D9EEE3'
+  };
 
-  function renderMeeting(ctx, W, H, state) {
-    var family = state.fontFamily;
-    var edge = 32;
-    var center = W / 2;
-    var width = W * .79;
+  var landmark = new Image();
+  landmark.src = window.LANDMARK_ATLAS;
+
+  function drawPostBackground(ctx, W, H, state) {
     var header = Math.round(H * .36);
     var ground = ctx.createLinearGradient(0, 0, W, H);
     var dark = state.bgColor === '#003912' ? '#002713' : '#00251a';
@@ -264,16 +294,86 @@
     ctx.fillStyle = ground;
     ctx.fillRect(0, 0, W, H);
 
-    if (state.countryCode === 'us' && landmark.naturalWidth) {
-      var artWidth = header * landmark.width / landmark.height;
-      var artX = W - artWidth;
-      ctx.drawImage(landmark, artX, 0, artWidth, header);
-      var blend = ctx.createLinearGradient(artX, 0, artX + artWidth * .55, 0);
-      blend.addColorStop(0, dark);
-      blend.addColorStop(1, 'transparent');
-      ctx.fillStyle = blend;
-      ctx.fillRect(artX, 0, artWidth, header);
+    // Keep the map visible beneath a meeting screenshot and behind text-only posts.
+    var isMeeting = state.templateId === 'meeting';
+    var mapWidth = isMeeting ? W * .30 : W * .93;
+    var mapScale = mapWidth / 360;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, header, W, H - header);
+    ctx.clip();
+    ctx.translate((W - mapWidth) / 2, H - 144 * mapScale - (isMeeting ? 5 : 32));
+    ctx.scale(mapScale, mapScale);
+    ctx.fillStyle = isMeeting ? 'rgba(133,220,173,.26)' : 'rgba(133,220,173,.14)';
+    ctx.fill(window.WORLD_LAND, 'evenodd');
+    ctx.restore();
+
+    var country = window.COUNTRIES.find(function(item) { return item.code === state.countryCode; });
+    if (country && landmark.naturalWidth) {
+      // Each tile is a continuous photographic banner. Use a cover crop
+      // at the canvas aspect ratio and keep off-centre landmarks in frame.
+      var tileW = 960, tileH = 330;
+      var scale = Math.max(W / tileW, header / tileH);
+      var cropW = W / scale, cropH = header / scale;
+      var focusX = country.code === 'fr' ? .92 : .5;
+      var srcX = (country.idx % 8) * tileW + (tileW - cropW) * focusX;
+      var srcY = Math.floor(country.idx / 8) * tileH + (tileH - cropH) * .22;
+      ctx.save();
+      ctx.drawImage(landmark, srcX, srcY, cropW, cropH, 0, 0, W, header);
+      var veil = ctx.createLinearGradient(0, 0, W, 0);
+      veil.addColorStop(0, 'rgba(0,33,23,.36)');
+      veil.addColorStop(.5, 'rgba(0,33,23,.48)');
+      veil.addColorStop(1, 'rgba(0,33,23,.36)');
+      ctx.fillStyle = veil;
+      ctx.fillRect(0, 0, W, header);
+      var bottomFade = ctx.createLinearGradient(0, header * .8, 0, header);
+      bottomFade.addColorStop(0, 'transparent');
+      bottomFade.addColorStop(1, dark);
+      ctx.fillStyle = bottomFade;
+      ctx.fillRect(0, header * .8, W, header * .2);
+      ctx.restore();
     }
+  }
+
+  function drawPostFooter(ctx, W, H, state) {
+    var family = state.fontFamily;
+    var author = state.showAuthor && (state.authorName || '').trim();
+    var footerX = 44;
+    var footerY = H - (author ? 89 : 58);
+    drawHRule(ctx, footerX, footerY, W - 2 * footerX, '#37604f', 1);
+    if (author) {
+      var iconX = footerX + 13;
+      var iconY = footerY + 43;
+      ctx.save();
+      ctx.strokeStyle = '#91eabe';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(iconX, iconY, 11, 0, Math.PI * 2);
+      ctx.moveTo(iconX + 8, iconY + 8);
+      ctx.lineTo(iconX + 18, iconY + 18);
+      ctx.stroke();
+      ctx.restore();
+      setFont(ctx, 21, '600', family);
+      ctx.fillStyle = postText.secondary;
+      ctx.fillText('Search on Google', footerX + 48, footerY + 13);
+      setFont(ctx, 31, '700', family);
+      ctx.fillStyle = postText.primary;
+      ctx.fillText(author, footerX + 48, footerY + 38, W * .56);
+    }
+    setFont(ctx, 29, '700', family);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = postText.accent;
+    ctx.fillText('Fiverr Freelancer', W - footerX, footerY + (author ? 36 : 14));
+    ctx.textAlign = 'left';
+  }
+
+  function renderMeeting(ctx, W, H, state) {
+    var family = state.fontFamily;
+    var edge = 32;
+    var center = W / 2;
+    var width = W * .79;
+    var header = Math.round(H * .36);
     if (state.servicePhase !== undefined) {
       ctx.save();
       ctx.translate(W * .52, 0);
@@ -293,20 +393,20 @@
       size -= 2;
     } while (size >= 30);
     // Center the flag and its label as one unit, then each headline line.
-    var flagY = Math.max(24, (header - (88 + size * lines.length + 28)) / 2);
+    var flagY = Math.max(24, (header - (98 + size * lines.length + 28)) / 2);
     var country = (state.countryLabel || '').trim();
-    setFont(ctx, 45, '700', family);
-    var countryWidth = Math.min(width - 148, ctx.measureText(country).width);
-    var flagX = center - (country ? 148 + countryWidth : 108) / 2;
-    drawFlag(ctx, state.countryCode, flagX, flagY, 108, 66, state);
+    setFont(ctx, 53, '700', family);
+    var countryWidth = Math.min(width - 122, ctx.measureText(country).width);
+    var flagX = center - (country ? 122 + countryWidth : 84) / 2;
+    drawFlag(ctx, state.countryCode, flagX, flagY - 3, 84, 84, state);
     if (country) {
-      drawHRule(ctx, flagX + 127, flagY + 7, 2, '#bfdece', 52);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(country, flagX + 148, flagY + 8, countryWidth);
+      drawHRule(ctx, flagX + 103, flagY + 8, 2, '#bfdece', 61);
+      ctx.fillStyle = postText.primary;
+      ctx.fillText(country, flagX + 122, flagY + 9, countryWidth);
     }
 
     setFont(ctx, size, '800', family);
-    var top = flagY + 88;
+    var top = flagY + 98;
     lines.forEach(function(line, i) {
       var measured = ctx.measureText(line).width;
       var cut = i === lines.length - 1 ? line.lastIndexOf(' ') + 1 : line.length;
@@ -314,9 +414,9 @@
       ctx.save();
       ctx.translate(center - Math.min(width, measured) / 2, top + i * size);
       ctx.scale(Math.min(1, width / measured), 1);
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = postText.primary;
       ctx.fillText(prefix, 0, 0);
-      ctx.fillStyle = '#9affd3';
+      ctx.fillStyle = postText.accent;
       ctx.fillText(line.slice(cut), ctx.measureText(prefix).width, 0);
       var client = /\bclient\b/i.exec(line);
       if (client) {
@@ -344,59 +444,16 @@
     var bottom = H - footerHeight;
     var photo = state.meetingImg;
     var availableHeight = bottom - header;
-    var frameWidth = W - 2 * edge;
-    var frameHeight = availableHeight;
-    if (state.meetingFit !== 'cover' && photo && photo.naturalWidth) {
-      var ratio = photo.naturalWidth / photo.naturalHeight;
-      frameWidth = Math.min(frameWidth, availableHeight * ratio);
-      frameHeight = frameWidth / ratio;
-    }
-    var frameX = (W - frameWidth) / 2;
-    var frameY = header + (availableHeight - frameHeight) / 2;
-    ctx.save();
-    ctx.strokeStyle = 'rgba(199, 247, 221, .38)';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(frameX - 1, frameY - 1, frameWidth + 2, frameHeight + 2);
-    drawScreenshotFrame(ctx, photo, frameX, frameY, frameWidth, frameHeight,
-      state.meetingFit, state.meetingZoom, state.meetingOffsetY, false, '#08271e');
-    ctx.restore();
-    var textY = frameY + frameHeight + 22;
+    var laptopBottom = drawLaptop(ctx, photo, edge, header, W - 2 * edge, availableHeight,
+      state.meetingFit, state.meetingZoom, state.meetingOffsetY);
+    var textY = laptopBottom + 22;
     setFont(ctx, 34, '600', family);
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = postText.primary;
     caption.forEach(function(line) {
       ctx.fillText(line, center, textY, width);
       textY += 43;
     });
-    var footerX = edge + 12;
-    var footerY = H - (author ? 89 : 58);
-    drawHRule(ctx, footerX, footerY, W - 2 * footerX, '#37604f', 1);
-    if (author) {
-      var iconX = footerX + 13;
-      var iconY = footerY + 43;
-      ctx.save();
-      ctx.strokeStyle = '#91eabe';
-      ctx.lineWidth = 3;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.arc(iconX, iconY, 11, 0, Math.PI * 2);
-      ctx.moveTo(iconX + 8, iconY + 8);
-      ctx.lineTo(iconX + 18, iconY + 18);
-      ctx.stroke();
-      ctx.restore();
-      setFont(ctx, 21, '600', family);
-      ctx.fillStyle = '#a6dbbf';
-      ctx.fillText('Search on Google', footerX + 48, footerY + 13);
-      setFont(ctx, 31, '700', family);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(author, footerX + 48, footerY + 38, W * .56);
-    }
-    setFont(ctx, 29, '700', family);
-    ctx.textAlign = 'right';
-    ctx.fillStyle = '#98f4bf';
-    ctx.fillText('Fiverr Freelancer', W - footerX, footerY + (author ? 36 : 14));
-    ctx.textAlign = 'left';
-
     return { overflow: false };
   }
 
@@ -404,13 +461,10 @@
 
   function renderCaseStudy(ctx, W, H, state) {
     var m = state.margin || 90;
-    var brand = state.brandColor || '#1DBF73';
-    var dark = state.bgColor === '#003912' ? '#ffffff' : '#222325';
-    var charcoal = state.bgColor === '#003912' ? '#d3ebde' : '#404145';
+    var brand = postText.accent;
+    var dark = postText.primary;
+    var charcoal = postText.secondary;
     var family = state.fontFamily || 'Manrope';
-
-    ctx.fillStyle = state.bgColor || '#FFFFFF';
-    ctx.fillRect(0, 0, W, H);
 
     var y = m;
 
@@ -443,7 +497,7 @@
       y += p.height + 20;
 
       if (y < contentMaxY - 20) {
-        drawHRule(ctx, m, y, W - 2 * m, '#E8E9E7', 1);
+        drawHRule(ctx, m, y, W - 2 * m, '#50846b', 1);
         y += 18;
       }
     }
@@ -455,8 +509,6 @@
       hasOverflow = true;
     }
 
-    drawAuthorWatermark(ctx, W, H, m, state);
-
     return {
       overflow: hasOverflow,
       message: hasOverflow ? 'Case study content exceeds safe boundaries. Shorten paragraphs for best readability.' : ''
@@ -467,30 +519,12 @@
 
   function renderProject(ctx, W, H, state) {
     var m = state.margin || 90;
-    var brand = state.brandColor || '#1DBF73';
-    var dark = state.bgColor === '#003912' ? '#ffffff' : '#222325';
-    var charcoal = state.bgColor === '#003912' ? '#d3ebde' : '#404145';
+    var brand = postText.accent;
+    var dark = postText.primary;
+    var charcoal = postText.secondary;
     var family = state.fontFamily || 'Manrope';
 
-    ctx.fillStyle = state.bgColor || '#FFFFFF';
-    ctx.fillRect(0, 0, W, H);
-
-    // Hero screenshot in upper 50%
-    var heroH = Math.round(H * 0.48);
-    drawScreenshotFrame(
-      ctx,
-      state.projectImg,
-      m,
-      m,
-      W - 2 * m,
-      heroH - m - 12,
-      state.projectFit || 'contain',
-      state.projectZoom || 100,
-      state.projectOffsetY || 0,
-      true
-    );
-
-    var y = heroH + 12;
+    var y = m;
 
     // Project Type Kicker
     setFont(ctx, 18, '700', family);
@@ -501,6 +535,11 @@
     // Project Title
     var titleRes = drawHeadline(ctx, state.projectTitle || 'Project Title', m, y, W - 2 * m, 52, 36, 1.18, dark, '800', family, 2);
     y += titleRes.height + 16;
+
+    var imageHeight = Math.min(H * .34, H - y - 358);
+    drawLaptop(ctx, state.projectImg, m, y, W - 2 * m, imageHeight,
+      state.projectFit || 'contain', state.projectZoom || 100, state.projectOffsetY || 0);
+    y += imageHeight + 22;
 
     // Tech Tags (clean pills)
     var tags = Array.isArray(state.projectTech) ? state.projectTech : ['React', 'Node.js', 'PostgreSQL'];
@@ -522,7 +561,7 @@
         ctx.beginPath();
         ctx.roundRect(tagX, y, pw, pillH, 4);
         ctx.fill();
-        ctx.strokeStyle = '#E8E9E7';
+        ctx.strokeStyle = '#50846b';
         ctx.lineWidth = 1;
         ctx.stroke();
       } else {
@@ -541,8 +580,6 @@
       drawParagraph(ctx, state.projectDesc, m, y, W - 2 * m, 26, 1.55, charcoal, '400', family);
     }
 
-    drawAuthorWatermark(ctx, W, H, m, state);
-
     return { overflow: y > H - m - 40 };
   }
 
@@ -550,13 +587,10 @@
 
   function renderService(ctx, W, H, state) {
     var m = state.margin || 90;
-    var brand = state.brandColor || '#1DBF73';
-    var dark = state.bgColor === '#003912' ? '#ffffff' : '#222325';
-    var charcoal = state.bgColor === '#003912' ? '#d3ebde' : '#404145';
+    var brand = postText.accent;
+    var dark = postText.primary;
+    var charcoal = postText.secondary;
     var family = state.fontFamily || 'Manrope';
-
-    ctx.fillStyle = state.bgColor || '#FFFFFF';
-    ctx.fillRect(0, 0, W, H);
 
     var y = m;
 
@@ -576,7 +610,7 @@
     y += hl.height + 22;
 
     // Clean rule
-    drawHRule(ctx, m, y, W - 2 * m, '#E8E9E7', 1);
+    drawHRule(ctx, m, y, W - 2 * m, '#50846b', 1);
     y += 26;
 
     // Description
@@ -599,8 +633,6 @@
       y += 46;
     });
 
-    drawAuthorWatermark(ctx, W, H, m, state);
-
     return { overflow: y > H - m - 40 };
   }
 
@@ -608,13 +640,10 @@
 
   function renderTip(ctx, W, H, state) {
     var m = state.margin || 90;
-    var brand = state.brandColor || '#1DBF73';
-    var dark = state.bgColor === '#003912' ? '#ffffff' : '#222325';
-    var charcoal = state.bgColor === '#003912' ? '#d3ebde' : '#404145';
+    var brand = postText.accent;
+    var dark = postText.primary;
+    var charcoal = postText.secondary;
     var family = state.fontFamily || 'Manrope';
-
-    ctx.fillStyle = state.bgColor || '#FFFFFF';
-    ctx.fillRect(0, 0, W, H);
 
     var y = m;
 
@@ -638,8 +667,6 @@
       drawParagraph(ctx, state.tipInsight, m, y, W - 2 * m, 32, 1.6, charcoal, '400', family);
     }
 
-    drawAuthorWatermark(ctx, W, H, m, state);
-
     return { overflow: y > H - m - 40 };
   }
 
@@ -649,12 +676,16 @@
     landmark: landmark,
     renderToContext: function(ctx, W, H, state) {
       var id = state.templateId || 'meeting';
-      if (id === 'meeting') return renderMeeting(ctx, W, H, state);
-      if (id === 'casestudy') return renderCaseStudy(ctx, W, H, state);
-      if (id === 'project') return renderProject(ctx, W, H, state);
-      if (id === 'service') return renderService(ctx, W, H, state);
-      if (id === 'tip') return renderTip(ctx, W, H, state);
-      return { overflow: false };
+      var templates = {
+        meeting: renderMeeting, casestudy: renderCaseStudy, project: renderProject,
+        service: renderService, tip: renderTip
+      };
+      var renderTemplate = templates[id];
+      if (!Object.prototype.hasOwnProperty.call(templates, id)) return { overflow: false };
+      drawPostBackground(ctx, W, H, state);
+      var result = renderTemplate(ctx, W, H, state);
+      drawPostFooter(ctx, W, H, state);
+      return result;
     },
 
     render: function(canvas, state) {

@@ -4,28 +4,23 @@ const FLAG_COLUMNS = 8;
 const FLAG_CELL_W = 132;
 const FLAG_CELL_H = 98;
 
-/**
- * Draws a country flag from the sprite sheet onto any canvas context.
- * Supports rounded corners if borderRadius is passed.
- */
-function drawCountryFlag(ctx, code, x, y, w, h, flagsImg, borderRadius = 0) {
-  if (!flagsImg || !flagsImg.complete || !flagsImg.naturalWidth) return;
-  const itemIndex = COUNTRIES.findIndex(c => c.code === code);
-  const ix = Math.max(0, itemIndex);
-  const col = ix % FLAG_COLUMNS;
-  const row = Math.floor(ix / FLAG_COLUMNS);
-
+// Sample the fabric inside the padded flag sprite and clip it to a badge.
+function drawCountryFlag(ctx, code, x, y, w, h, flagsImg) {
+  const flag = COUNTRIES.find(country => country.code === code);
+  if (!flag || !flagsImg || !flagsImg.naturalWidth) return;
+  const diameter = Math.min(w, h);
+  const cx = x + w / 2, cy = y + h / 2;
   ctx.save();
-  if (borderRadius > 0) {
-    ctx.beginPath();
-    if (ctx.roundRect) {
-      ctx.roundRect(x, y, w, h, borderRadius);
-    } else {
-      ctx.rect(x, y, w, h);
-    }
-    ctx.clip();
-  }
-  ctx.drawImage(flagsImg, col * FLAG_CELL_W, row * FLAG_CELL_H, FLAG_CELL_W, FLAG_CELL_H, x, y, w, h);
+  ctx.beginPath();
+  ctx.arc(cx, cy, diameter / 2, 0, 2 * Math.PI);
+  ctx.fillStyle = '#fcfaf2';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx, cy, diameter * .465, 0, 2 * Math.PI);
+  ctx.clip();
+  const sx = (flag.idx % FLAG_COLUMNS) * FLAG_CELL_W + 23;
+  const sy = Math.floor(flag.idx / FLAG_COLUMNS) * FLAG_CELL_H + 28;
+  ctx.drawImage(flagsImg, sx, sy, 86, 42, cx - diameter * .54, cy - diameter / 2, diameter * 1.08, diameter);
   ctx.restore();
 }
 

@@ -63,13 +63,22 @@
     flagsImg: null
   };
 
+  function restoreDefaults(saved) {
+    var state = Object.assign({}, DEFAULT_STATE, saved);
+    if (saved.meetingTitle === undefined && saved.meetingHeadline !== undefined) {
+      state.meetingTitle = saved.showMeetingHeadline === false ? '' : saved.meetingHeadline;
+    }
+    if (saved.meetingCaption === undefined && saved.meetingNote !== undefined) state.meetingCaption = saved.meetingNote;
+    return state;
+  }
+
   function loadSavedState() {
     try {
       var saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         var parsed = JSON.parse(saved);
         if (parsed && typeof parsed === 'object') {
-          return Object.assign({}, DEFAULT_STATE, parsed);
+          return restoreDefaults(parsed);
         }
       }
     } catch(e) {}
@@ -93,6 +102,7 @@
   }
 
   window.AppState = {
+    restoreDefaults: restoreDefaults,
     get: function() {
       return Object.assign({}, _state, _images);
     },

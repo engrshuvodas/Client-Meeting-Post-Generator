@@ -163,7 +163,7 @@
       ctx.clearRect(0, 0, flagPreview.width, flagPreview.height);
       var state = window.AppState.get();
       if (state.flagsImg && state.flagsImg.complete && state.flagsImg.naturalWidth) {
-        window.drawCountryFlag(ctx, code, 0, 0, flagPreview.width, flagPreview.height, state.flagsImg, 2);
+        window.drawCountryFlag(ctx, code, 0, 0, flagPreview.width, flagPreview.height, state.flagsImg);
       }
     }
 
@@ -194,9 +194,9 @@
 
         var flagCanvas = document.createElement('canvas');
         flagCanvas.width = 66;
-        flagCanvas.height = 44;
+        flagCanvas.height = 66;
         if (state.flagsImg && state.flagsImg.complete) {
-          window.drawCountryFlag(flagCanvas.getContext('2d'), country.code, 0, 0, 66, 44, state.flagsImg, 2);
+          window.drawCountryFlag(flagCanvas.getContext('2d'), country.code, 0, 0, 66, 66, state.flagsImg);
         }
 
         var nameSpan = document.createElement('span');
@@ -441,6 +441,7 @@
         setStatus('Generating export...', '');
         try {
           var state = window.AppState.get();
+          await window.Renderer.landmark.decode();
           var scale = state.exportScale || 1;
           var exportCanvas = renderToExportCanvas(state, scale);
           var blob = await window.ExportUtils.canvasBlob(exportCanvas);
@@ -458,6 +459,7 @@
         setStatus('Exporting all 5 slides...', '');
         try {
           var originalState = window.AppState.get();
+          await window.Renderer.landmark.decode();
           var scale = originalState.exportScale || 1;
           var templates = ['meeting', 'casestudy', 'project', 'service', 'tip'];
           var items = [];
@@ -594,7 +596,7 @@
         if (!file) return;
         try {
           var result = await window.Storage.loadProjectFile(file);
-          result.state = Object.assign({}, window.AppState.DEFAULT_STATE, result.state);
+          result.state = window.AppState.restoreDefaults(result.state);
           window.AppState.set(result.state);
           hydrateForm(result.state);
 

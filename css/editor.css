@@ -190,7 +190,7 @@ textarea { resize: vertical; min-height: 70px; }
   cursor: pointer; font-size: 13px; color: var(--dark);
 }
 .country-option:hover { background: var(--light-bg); }
-.country-option canvas { width: 42px; height: 28px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 2px; }
+.country-option canvas { width: 30px; height: 30px; flex-shrink: 0; border-radius: 50%; }
 
 .flag-preview-row { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
 .flag-canvas { border: 1px solid var(--border); border-radius: 2px; display: block; flex-shrink: 0; }
@@ -253,7 +253,7 @@ textarea { resize: vertical; min-height: 70px; }
 .tab-btn:focus-visible { outline: 2px solid var(--brand); }
 .panel-title { font-size: 19px; letter-spacing: -.5px; }
 .panel-header { padding-bottom: 14px; }
-.flag-canvas { width: 42px; height: 27px; }
+.flag-canvas { width: 36px; height: 36px; border-radius: 50%; }
 .flag-preview-row { margin-top: 0; }
 .workspace { background: radial-gradient(#bccdc1 .9px, transparent 1px) 0 0 / 18px 18px, #eaf1eb; padding: 24px clamp(16px, 4vw, 64px); }
 .preview-heading, .canvas-footer-bar { width: 100%; max-width: 680px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
